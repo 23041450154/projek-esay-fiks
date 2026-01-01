@@ -30,8 +30,14 @@ module.exports = async function handler(req, res) {
     // GET - List sessions
     // - Group chat (companion_id = null): visible to ALL users
     // - Companion chat (companion_id exists): only visible to creator
+    // - Only show ACTIVE sessions (not closed)
     if (req.method === 'GET') {
-      const { data: sessions, error } = await supabase
+      // Try to fetch with status column (may not exist yet)
+      let sessions = [];
+      let hasStatusColumn = true;
+
+      // Try with status column first
+      const { data: sessionsData, error } = await supabase
         .from('chat_sessions')
         .select(`
           session_id, 
@@ -39,6 +45,8 @@ module.exports = async function handler(req, res) {
           created_by, 
           created_at,
           companion_id,
+          room_type,
+          status,
           companions (
             name,
             specialty
@@ -47,7 +55,39 @@ module.exports = async function handler(req, res) {
         .or(`created_by.eq.${user.userId},companion_id.is.null`)  // Own sessions OR group chats
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        // If column doesn't exist, try without status columns
+        if (error.code === '42703') {
+          hasStatusColumn = false;
+          const { data: fallbackData, error: fallbackError } = await supabase
+            .from('chat_sessions')
+            .select(`
+              session_id, 
+              topic, 
+              created_by, 
+              created_at,
+              companion_id,
+              companions (
+                name,
+                specialty
+              )
+            `)
+            .or(`created_by.eq.${user.userId},companion_id.is.null`)
+            .order('created_at', { ascending: false });
+
+          if (fallbackError) throw fallbackError;
+          sessions = fallbackData || [];
+        } else {
+          throw error;
+        }
+      } else {
+        sessions = sessionsData || [];
+      }
+
+      // Filter out closed sessions (only show active)
+      if (hasStatusColumn) {
+        sessions = sessions.filter(s => s.status !== 'closed');
+      }
 
       return res.status(200).json({
         sessions: sessions.map(s => ({
@@ -57,7 +97,8 @@ module.exports = async function handler(req, res) {
           companionId: s.companion_id,
           companionName: s.companions?.name || null,
           companionSpecialty: s.companions?.specialty || null,
-          status: 'active',
+          roomType: hasStatusColumn ? (s.room_type || 'private') : 'private',
+          status: hasStatusColumn ? (s.status || 'active') : 'active',
           createdAt: s.created_at,
         })),
       });

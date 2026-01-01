@@ -67,27 +67,48 @@ module.exports = async function handler(req, res) {
         return res.status(403).json({ error: 'Not assigned to this session' });
       }
 
+      // Get session user's anon_number for anonymization
+      const { data: sessionUser } = await supabase
+        .from('chat_sessions')
+        .select(`
+          users!inner (
+            user_id,
+            anon_number
+          )
+        `)
+        .eq('session_id', sessionId)
+        .single();
+
+      const userAnonNumber = sessionUser?.users?.anon_number || null;
+
       // Get messages
       const { data: messages, error: msgError } = await supabase
         .from('messages')
-        .select('message_id, sender_id, display_name, text, created_at, is_companion')
+        .select('message_id, sender_id, display_name, text, created_at, is_companion, is_system')
         .eq('session_id', sessionId)
         .order('created_at', { ascending: true });
 
       if (msgError) throw msgError;
+
+      // Format anon label helper
+      const formatAnonLabel = (n) => n ? 'Pengguna ' + String(n).padStart(3, '0') : 'Pengguna ---';
 
       return res.status(200).json({
         success: true,
         session: {
           sessionId: session.session_id,
           topic: session.topic,
+          anonNumber: userAnonNumber,
         },
         messages: messages.map((m) => ({
           messageId: m.message_id,
           senderId: m.sender_id,
-          displayName: m.display_name,
+          // Anonymize: show anon label for user messages, real name for companion
+          // System messages show "Sistem"
+          displayName: m.is_system ? 'Sistem' : (m.is_companion ? m.display_name : formatAnonLabel(userAnonNumber)),
           text: m.text,
           isCompanion: m.is_companion || false,
+          isSystem: m.is_system || false,
           createdAt: m.created_at,
         })),
       });

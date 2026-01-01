@@ -10,6 +10,7 @@ const {
   sanitizeInput 
 } = require('../_lib/auth');
 const { strictRateLimit } = require('../_lib/rateLimit');
+const { ensureAnonNumber } = require('../_lib/anonNumber');
 
 module.exports = async function handler(req, res) {
   // Only allow POST
@@ -78,6 +79,9 @@ module.exports = async function handler(req, res) {
       userId = newUser.user_id;
       hasConsented = false;
     }
+
+    // Ensure user has anonymous number assigned (for companion dashboard)
+    await ensureAnonNumber(userId);
 
     // Create session
     const sessionData = {

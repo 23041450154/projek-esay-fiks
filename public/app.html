@@ -2,9 +2,41 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, interactive-widget=resizes-content">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <title>Ruang Dengar - Ruang Aman</title>
   <link rel="stylesheet" href="styles.css">
+  <style>
+    /* Critical CSS for mobile keyboard handling - only when chat-lock active */
+    :root {
+      --app-height: 100vh;
+      --keyboard-height: 0px;
+    }
+    body.chat-lock {
+      height: var(--app-height);
+      overflow: hidden;
+      overscroll-behavior: none;
+      -webkit-overflow-scrolling: touch;
+    }
+    body.chat-lock .app-layout {
+      height: var(--app-height);
+      max-height: var(--app-height);
+    }
+  </style>
+  <script>
+    // Early execution - set app height before paint
+    (function() {
+      function setAppHeight() {
+        var vh = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+        document.documentElement.style.setProperty('--app-height', vh + 'px');
+      }
+      setAppHeight();
+      // Also run after short delay for more accurate initial sizing
+      setTimeout(setAppHeight, 100);
+    })();
+  </script>
 </head>
 <body>
   <div class="app-layout">
@@ -32,17 +64,17 @@
 
     <!-- Navigation -->
     <nav class="nav-tabs">
-      <button class="nav-tab" data-tab="companions">
+      <button class="nav-tab active" data-tab="companions">
         <svg class="nav-tab-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
         </svg>
-        <span>Teman Ngobrol</span>
+        <span>Ngobrol</span>
       </button>
-      <button class="nav-tab active" data-tab="chat">
+      <button class="nav-tab" data-tab="chat">
         <svg class="nav-tab-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
         </svg>
-        <span>Ruang Chat</span>
+        <span>Pesan</span>
       </button>
       <button class="nav-tab" data-tab="journal">
         <svg class="nav-tab-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -56,26 +88,27 @@
         </svg>
         <span>Mood</span>
       </button>
-      <button class="nav-tab" data-tab="help">
+      <button class="nav-tab" data-tab="insight">
         <svg class="nav-tab-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z"></path>
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
         </svg>
-        <span>Bantuan</span>
+        <span>Insight</span>
       </button>
     </nav>
 
     <!-- Main Content -->
     <main class="app-content">
-      <!-- Sidebar Overlay for Mobile -->
-      <div class="sidebar-overlay" id="sidebarOverlay"></div>
-
       <!-- Chat Tab -->
-      <section id="tab-chat" class="tab-content active">
-        <div class="chat-layout">
+      <section id="tab-chat" class="tab-content">
+        <div class="chat-layout" id="chatLayout">
           <aside class="chat-sidebar" id="chatSidebar">
             <div class="sidebar-header">
               <h2 class="sidebar-title">Ruang Chat</h2>
-              <button id="newChatBtn" class="btn btn-primary btn-sm">+ Baru</button>
+              <button id="newChatBtn" class="btn-new-chat" aria-label="Buat chat baru">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                </svg>
+              </button>
             </div>
             <div class="session-list" id="sessionList">
               <p class="empty-state">Belum ada ruang chat</p>
@@ -85,7 +118,11 @@
           <div class="chat-main">
             <div class="chat-header" id="chatHeader" hidden>
               <div style="display: flex; align-items: center; gap: var(--space-3);">
-                <button id="toggleSidebarBtn" class="btn btn-ghost btn-sm" style="display: none;">☰</button>
+                <button id="backToListBtn" class="btn btn-ghost btn-sm" title="Kembali ke daftar">
+                  <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                  </svg>
+                </button>
                 <h3 class="chat-topic" id="chatTopic">Pilih ruang chat</h3>
               </div>
               <div style="display: flex; gap: var(--space-2);">
@@ -114,11 +151,11 @@
           </div>
         </div>
 
-        <!-- New Chat Modal -->
+        <!-- New Group Chat Modal -->
         <div id="newChatModal" class="modal" hidden>
           <div class="modal-content">
             <div class="modal-header">
-              <h2 class="modal-title">Buat Ruang Chat Baru</h2>
+              <h2 class="modal-title">Buat Ruang Grup</h2>
             </div>
             <form id="newChatForm">
               <div class="form-group">
@@ -132,12 +169,7 @@
                   maxlength="200"
                   required
                 >
-              </div>
-              <div class="form-group">
-                <label class="form-label">Pilih Teman Ngobrol (Opsional)</label>
-                <div class="companion-list" id="companionList">
-                  <p class="text-muted">Memuat teman ngobrol...</p>
-                </div>
+                <small class="form-hint">Ruang ini terbuka untuk semua pengguna</small>
               </div>
               <div class="modal-actions">
                 <button type="button" class="btn btn-secondary" id="cancelNewChat" onclick="document.getElementById('newChatModal').hidden = true;">Batal</button>
@@ -178,58 +210,90 @@
       <!-- Journal Tab -->
       <section id="tab-journal" class="tab-content">
         <div class="journal-container">
-          <div class="journal-header">
-            <h2>Jurnal Pribadi</h2>
-            <button id="newJournalBtn" class="btn btn-primary">+ Tulis Baru</button>
+          <!-- Hero Section -->
+          <div class="journal-hero">
+            <div class="journal-hero-icon">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+              </svg>
+            </div>
+            <h1 class="journal-hero-title">Ruang Refleksimu</h1>
+            <p class="journal-hero-subtitle">Tuangkan pikiran dan perasaanmu di sini. Tidak perlu sempurna, cukup jujur.</p>
           </div>
-          
-          <div class="journal-list" id="journalList">
-            <p class="empty-state">Belum ada entri jurnal. Mulai menulis sekarang!</p>
+
+          <!-- Main CTA -->
+          <button class="journal-cta-btn" id="newJournalBtn">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+            </svg>
+            Tulis Jurnal Baru
+          </button>
+
+          <!-- Journal History -->
+          <div class="journal-history">
+            <div class="journal-history-header">
+              <h3 class="journal-history-title">Catatan Sebelumnya</h3>
+              <span class="journal-count" id="journalCount">0 entri</span>
+            </div>
+            <div class="journal-list" id="journalList">
+              <!-- Empty state will be rendered by JS -->
+            </div>
           </div>
         </div>
 
-        <!-- Journal Modal -->
+        <!-- Journal Write/Edit Modal -->
         <div id="journalModal" class="modal" hidden>
-          <div class="modal-content modal-large">
-            <div class="modal-header">
-              <h2 class="modal-title" id="journalModalTitle">Tulis Jurnal Baru</h2>
+          <div class="modal-content journal-modal-content">
+            <div class="journal-modal-header">
+              <h2 class="journal-modal-title" id="journalModalTitle">Tulis Jurnal</h2>
+              <button type="button" class="btn-close-modal" onclick="document.getElementById('journalModal').hidden = true;">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+              </button>
             </div>
-            <form id="journalForm">
+            <form id="journalForm" class="journal-form">
               <input type="hidden" id="journalEntryId">
-              <div class="form-group">
-                <label class="form-label" for="journalTitle">Judul</label>
+              <div class="journal-form-group">
                 <input 
                   type="text" 
                   id="journalTitle" 
-                  class="form-input"
-                  placeholder="Judul jurnalmu"
+                  class="journal-title-input"
+                  placeholder="Beri judul untuk hari ini..."
                   maxlength="200"
                   required
                 >
               </div>
-              <div class="form-group">
-                <label class="form-label" for="journalBody">Isi</label>
+              <div class="journal-form-group">
                 <textarea 
                   id="journalBody" 
-                  class="form-input"
-                  style="min-height: 200px;"
-                  placeholder="Tuangkan pikiranmu di sini..."
+                  class="journal-body-input"
+                  placeholder="Apa yang ada di pikiranmu? Ceritakan dengan bebas..."
                   maxlength="10000"
                   required
                 ></textarea>
               </div>
-              <div class="form-group">
-                <label class="form-label" for="journalTags">Tags (pisahkan dengan koma)</label>
-                <input 
-                  type="text" 
-                  id="journalTags" 
-                  class="form-input"
-                  placeholder="refleksi, syukur, tujuan"
-                >
+              <div class="journal-form-group">
+                <div class="journal-tags-input-wrapper">
+                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
+                  </svg>
+                  <input 
+                    type="text" 
+                    id="journalTags" 
+                    class="journal-tags-input"
+                    placeholder="Tags: refleksi, syukur, tujuan"
+                  >
+                </div>
               </div>
-              <div class="modal-actions">
-                <button type="button" class="btn btn-secondary" id="cancelJournal" onclick="document.getElementById('journalModal').hidden = true;">Batal</button>
-                <button type="submit" class="btn btn-primary">Simpan</button>
+              <div class="journal-form-actions">
+                <button type="button" class="btn btn-ghost" id="cancelJournal">Batal</button>
+                <button type="submit" class="btn btn-primary">
+                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                  </svg>
+                  Simpan
+                </button>
               </div>
             </form>
           </div>
@@ -237,19 +301,34 @@
 
         <!-- View Journal Modal -->
         <div id="viewJournalModal" class="modal" hidden>
-          <div class="modal-content modal-large">
-            <div class="modal-header">
-              <h2 class="modal-title" id="viewJournalTitle">Title</h2>
+          <div class="modal-content journal-modal-content">
+            <div class="journal-modal-header">
+              <div>
+                <h2 class="journal-modal-title" id="viewJournalTitle">Title</h2>
+                <span id="viewJournalDate" class="journal-view-date"></span>
+              </div>
+              <button type="button" class="btn-close-modal" onclick="document.getElementById('viewJournalModal').hidden = true;">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+              </button>
             </div>
-            <div style="margin-bottom: var(--space-4);">
-              <span id="viewJournalDate" class="text-sm text-muted"></span>
-              <span id="viewJournalTags"></span>
-            </div>
-            <div id="viewJournalBody" style="white-space: pre-wrap; color: var(--text-secondary);"></div>
-            <div class="modal-actions">
-              <button class="btn btn-secondary" id="closeViewJournal" onclick="document.getElementById('viewJournalModal').hidden = true;">Tutup</button>
-              <button class="btn btn-primary" id="editJournalBtn">Edit</button>
-              <button class="btn btn-danger" id="deleteJournalBtn">Hapus</button>
+            <div class="journal-view-tags" id="viewJournalTags"></div>
+            <div class="journal-view-body" id="viewJournalBody"></div>
+            <div class="journal-view-actions">
+              <button class="btn btn-ghost" id="closeViewJournal">Tutup</button>
+              <button class="btn btn-secondary" id="editJournalBtn">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                </svg>
+                Edit
+              </button>
+              <button class="btn btn-danger-ghost" id="deleteJournalBtn">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                </svg>
+                Hapus
+              </button>
             </div>
           </div>
         </div>
@@ -258,73 +337,230 @@
       <!-- Mood Tab -->
       <section id="tab-mood" class="tab-content">
         <div class="mood-container">
-          <div class="mood-header">
-            <h2 class="mood-question">Bagaimana perasaanmu hari ini?</h2>
-            <p class="text-muted">Pilih angka yang paling menggambarkan kondisimu</p>
+          <!-- Hero Section -->
+          <div class="mood-hero">
+            <div class="mood-hero-icon">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+            </div>
+            <h1 class="mood-hero-title">Bagaimana kabarmu hari ini?</h1>
+            <p class="mood-hero-subtitle">Tidak ada jawaban yang salah. Apapun yang kamu rasakan, itu valid.</p>
           </div>
 
-          <form id="moodForm">
+          <!-- Mood Form -->
+          <form id="moodForm" class="mood-form-card">
             <div class="mood-scale" id="moodScale">
-              <label class="mood-option">
+              <label class="mood-option" data-mood="1">
                 <input type="radio" name="rating" value="1" required>
+                <span class="mood-emoji">😞</span>
                 <span class="mood-number">1</span>
-                <span class="mood-label">Sangat Buruk</span>
+                <span class="mood-label">Sangat Berat</span>
               </label>
-              <label class="mood-option">
+              <label class="mood-option" data-mood="2">
                 <input type="radio" name="rating" value="2">
+                <span class="mood-emoji">😔</span>
                 <span class="mood-number">2</span>
-                <span class="mood-label">Buruk</span>
+                <span class="mood-label">Berat</span>
               </label>
-              <label class="mood-option">
+              <label class="mood-option" data-mood="3">
                 <input type="radio" name="rating" value="3">
+                <span class="mood-emoji">😐</span>
                 <span class="mood-number">3</span>
-                <span class="mood-label">Netral</span>
+                <span class="mood-label">Biasa</span>
               </label>
-              <label class="mood-option">
+              <label class="mood-option" data-mood="4">
                 <input type="radio" name="rating" value="4">
+                <span class="mood-emoji">🙂</span>
                 <span class="mood-number">4</span>
                 <span class="mood-label">Baik</span>
               </label>
-              <label class="mood-option">
+              <label class="mood-option" data-mood="5">
                 <input type="radio" name="rating" value="5">
+                <span class="mood-emoji">😊</span>
                 <span class="mood-number">5</span>
                 <span class="mood-label">Sangat Baik</span>
               </label>
             </div>
 
-            <div class="mood-note">
-              <label class="form-label" for="moodNote">Catatan (opsional)</label>
+            <div class="mood-note-section">
+              <label class="mood-note-label" for="moodNote">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                </svg>
+                Tambahkan catatan (opsional)
+              </label>
               <textarea 
                 id="moodNote" 
-                class="form-input"
-                placeholder="Ada yang ingin kamu catat tentang perasaanmu?"
+                class="mood-note-input"
+                placeholder="Ceritakan sedikit tentang apa yang kamu rasakan..."
                 rows="3"
                 maxlength="500"
               ></textarea>
             </div>
 
-            <button type="submit" class="btn btn-primary btn-block">Simpan Mood</button>
+            <button type="submit" class="mood-submit-btn" id="moodSubmitBtn">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+              </svg>
+              Simpan Mood
+            </button>
           </form>
 
-          <div class="mood-history">
-            <h3 class="mood-history-title">Riwayat Mood</h3>
-            <div id="moodHistory">
-              <p class="empty-state">Belum ada riwayat mood</p>
+          <!-- Success Feedback (hidden by default) -->
+          <div class="mood-success" id="moodSuccess" hidden>
+            <div class="mood-success-icon">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+            </div>
+            <h3 class="mood-success-title">Tersimpan</h3>
+            <p class="mood-success-text">Terima kasih sudah berbagi. Setiap langkah kecil itu berarti.</p>
+          </div>
+
+          <!-- Mood History Section -->
+          <div class="mood-history-section">
+            <button class="mood-history-toggle" id="moodHistoryToggle">
+              <div class="toggle-header">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <span>Riwayat Mood</span>
+                <span class="mood-history-count" id="moodHistoryCount">0</span>
+              </div>
+              <svg class="toggle-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+              </svg>
+            </button>
+            
+            <div class="mood-history-content" id="moodHistoryContent" hidden>
+              <div id="moodHistory">
+                <!-- Will be populated by JS -->
+              </div>
             </div>
           </div>
         </div>
       </section>
 
-      <!-- Help Tab -->
-      <section id="tab-help" class="tab-content">
-        <div class="help-container">
-          <div class="help-header">
-            <h2 class="help-title">Butuh Bantuan?</h2>
-            <p class="help-subtitle">Jangan ragu untuk mencari bantuan profesional</p>
+      <!-- Insight Tab -->
+      <section id="tab-insight" class="tab-content">
+        <div class="insight-container">
+          <div class="insight-header">
+            <h2 class="insight-title">Insight</h2>
+            <p class="insight-subtitle">Ringkasan aktivitas dan perkembangan kesejahteraanmu</p>
           </div>
 
-          <div class="help-section">
-            <h3 class="help-section-title">Hotline Krisis Indonesia</h3>
+          <!-- Weekly Mood Summary -->
+          <div class="insight-card">
+            <div class="insight-card-header">
+              <h3 class="insight-card-title">Ringkasan Mood Mingguan</h3>
+              <span class="insight-period">7 hari terakhir</span>
+            </div>
+            <div class="mood-chart" id="moodChart">
+              <div class="mood-bar-container">
+                <div class="mood-bar" data-day="Sen" style="--height: 60%;"></div>
+                <div class="mood-bar" data-day="Sel" style="--height: 80%;"></div>
+                <div class="mood-bar" data-day="Rab" style="--height: 40%;"></div>
+                <div class="mood-bar" data-day="Kam" style="--height: 70%;"></div>
+                <div class="mood-bar" data-day="Jum" style="--height: 90%;"></div>
+                <div class="mood-bar" data-day="Sab" style="--height: 50%;"></div>
+                <div class="mood-bar today" data-day="Min" style="--height: 75%;"></div>
+              </div>
+            </div>
+            <div class="mood-summary-stats">
+              <div class="stat-item">
+                <span class="stat-value" id="avgMood">3.5</span>
+                <span class="stat-label">Rata-rata</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-value" id="moodTrend">Stabil</span>
+                <span class="stat-label">Tren</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-value" id="moodEntries">5</span>
+                <span class="stat-label">Entri</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Activity Summary -->
+          <div class="insight-card">
+            <div class="insight-card-header">
+              <h3 class="insight-card-title">Aktivitas</h3>
+            </div>
+            <div class="activity-grid">
+              <div class="activity-item">
+                <div class="activity-icon chat-icon">
+                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                  </svg>
+                </div>
+                <div class="activity-content">
+                  <span class="activity-value" id="insightChatCount">0</span>
+                  <span class="activity-label">Sesi Chat</span>
+                </div>
+              </div>
+              <div class="activity-item">
+                <div class="activity-icon journal-icon">
+                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                  </svg>
+                </div>
+                <div class="activity-content">
+                  <span class="activity-value" id="insightJournalCount">0</span>
+                  <span class="activity-label">Jurnal</span>
+                </div>
+              </div>
+              <div class="activity-item">
+                <div class="activity-icon mood-icon">
+                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                  </svg>
+                </div>
+                <div class="activity-content">
+                  <span class="activity-value" id="insightMoodCount">0</span>
+                  <span class="stat-label">Log Mood</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Help & Resources Section -->
+          <div class="insight-card help-resources">
+            <div class="insight-card-header">
+              <h3 class="insight-card-title">Bantuan dan Sumber Daya</h3>
+            </div>
+            <div class="help-links">
+              <a href="#" class="help-link" onclick="showHelpModal(); return false;">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                </svg>
+                <span>Hotline Krisis</span>
+              </a>
+              <a href="#" class="help-link" onclick="showTipsModal(); return false;">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <span>Tips Penggunaan</span>
+              </a>
+            </div>
+          </div>
+
+          <!-- Motivation Quote -->
+          <div class="insight-quote">
+            <p>"Setiap langkah kecil menuju kesehatan mental adalah pencapaian yang berarti."</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Help Modal -->
+      <div id="helpModal" class="modal" hidden>
+        <div class="modal-content">
+          <div class="modal-header">
+            <h2 class="modal-title">Hotline Krisis Indonesia</h2>
+            <button type="button" class="btn btn-ghost btn-sm" onclick="document.getElementById('helpModal').hidden = true;">Tutup</button>
+          </div>
+          <div class="help-contacts-list">
             <div class="help-contact">
               <p class="help-contact-name">Into The Light Indonesia</p>
               <p class="help-contact-number">119 ext 8 (24 jam)</p>
@@ -342,82 +578,199 @@
               <p class="help-contact-number">119 ext 8</p>
             </div>
           </div>
-
-          <div class="help-section">
-            <h3 class="help-section-title" style="color: var(--text-primary);">Tips Menggunakan SafeSpace</h3>
-            <ul style="list-style: none; padding: 0;">
-              <li style="padding: var(--space-3) 0; border-bottom: 1px solid var(--border-light); font-size: var(--text-sm); color: var(--text-secondary);">
-                Gunakan nama panggilan untuk menjaga privasi
-              </li>
-              <li style="padding: var(--space-3) 0; border-bottom: 1px solid var(--border-light); font-size: var(--text-sm); color: var(--text-secondary);">
-                Jurnal bersifat pribadi dan hanya dapat dilihat olehmu
-              </li>
-              <li style="padding: var(--space-3) 0; border-bottom: 1px solid var(--border-light); font-size: var(--text-sm); color: var(--text-secondary);">
-                Lacak mood harianmu untuk memahami pola emosimu
-              </li>
-              <li style="padding: var(--space-3) 0; font-size: var(--text-sm); color: var(--text-secondary);">
-                Laporkan konten yang tidak pantas untuk menjaga keamanan komunitas
-              </li>
-            </ul>
-          </div>
         </div>
-      </section>
+      </div>
+
+      <!-- Tips Modal -->
+      <div id="tipsModal" class="modal" hidden>
+        <div class="modal-content">
+          <div class="modal-header">
+            <h2 class="modal-title">Tips Menggunakan Ruang Dengar</h2>
+            <button type="button" class="btn btn-ghost btn-sm" onclick="document.getElementById('tipsModal').hidden = true;">Tutup</button>
+          </div>
+          <ul class="tips-list">
+            <li>Gunakan nama panggilan untuk menjaga privasi</li>
+            <li>Jurnal bersifat pribadi dan hanya dapat dilihat olehmu</li>
+            <li>Lacak mood harianmu untuk memahami pola emosimu</li>
+            <li>Laporkan konten yang tidak pantas untuk menjaga keamanan komunitas</li>
+          </ul>
+        </div>
+      </div>
 
       <!-- Companions Tab -->
-      <section id="tab-companions" class="tab-content">
+      <section id="tab-companions" class="tab-content active">
         <div class="companions-container">
-          <div class="companions-header">
-            <h2 class="companions-title">Teman Ngobrol</h2>
-            <p class="companions-subtitle">Pilih teman ngobrol dan mulai berbagi ceritamu</p>
+          <!-- Hero Section -->
+          <div class="companions-hero">
+            <div class="hero-icon">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z"></path>
+              </svg>
+            </div>
+            <h1 class="companions-hero-title">Ada yang ingin diceritakan?</h1>
+            <p class="companions-hero-subtitle">Kami di sini untuk mendengarkan tanpa menghakimi</p>
           </div>
 
-          <div class="companions-grid" id="companionsGrid">
-            <p class="empty-state">Loading...</p>
+          <!-- Main CTA Card -->
+          <div class="listener-card" id="listenerCard">
+            <div class="listener-card-header">
+              <div class="listener-status">
+                <span class="status-dot active"></span>
+                <span class="status-text" id="listenerStatusText">Pendengar tersedia</span>
+              </div>
+              <span class="response-time" id="responseTime">Respon dalam beberapa menit</span>
+            </div>
+            
+            <div class="listener-card-body">
+              <div class="listener-avatars" id="listenerAvatars">
+                <!-- Will be populated by JS -->
+              </div>
+              <p class="listener-count" id="listenerCount">3 pendengar siap menemanimu</p>
+            </div>
+
+            <button class="btn-start-chat" id="btnStartChat">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+              </svg>
+              Mulai Ngobrol
+            </button>
           </div>
 
-          <div class="companions-info">
-            <div class="info-card">
-              <h3>Tentang Fitur Teman Ngobrol</h3>
-              <p>
-                Teman Ngobrol adalah relawan yang siap mendengarkan cerita dan pengalamanmu. 
-                Kamu bisa berbagi apa saja secara anonim, dan mereka akan merespons dengan empati. 
-                Klik "Chat Sekarang" untuk memulai percakapan.
-              </p>
+          <!-- Features -->
+          <div class="companions-features">
+            <div class="feature-item">
+              <div class="feature-icon">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                </svg>
+              </div>
+              <div class="feature-text">
+                <span class="feature-title">Anonim dan Aman</span>
+                <span class="feature-desc">Identitasmu terlindungi</span>
+              </div>
+            </div>
+            <div class="feature-item">
+              <div class="feature-icon">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                </svg>
+              </div>
+              <div class="feature-text">
+                <span class="feature-title">Tanpa Menghakimi</span>
+                <span class="feature-desc">Didengar dengan empati</span>
+              </div>
+            </div>
+            <div class="feature-item">
+              <div class="feature-icon">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+              </div>
+              <div class="feature-text">
+                <span class="feature-title">Kapan Saja</span>
+                <span class="feature-desc">Tersedia setiap hari</span>
+              </div>
             </div>
           </div>
-        </div>
 
-        <!-- Modal: New Chat with Companion -->
-        <div id="companionChatModal" class="modal" hidden>
-          <div class="modal-content">
-            <h3 class="modal-title">
-              Mulai Chat dengan 
-              <span id="selectedCompanionName" style="color: var(--primary); font-weight: 800;">Teman</span>
-            </h3>
-            <form id="companionChatForm">
-              <div class="form-group">
-                <label for="companionChatTopic">Topik yang ingin dibahas</label>
-                <input 
-                  type="text" 
-                  id="companionChatTopic" 
-                  placeholder="Contoh: Merasa cemas akhir-akhir ini" 
-                  required 
-                  minlength="3"
-                  maxlength="200"
-                />
-                <small style="color: var(--text-muted); font-size: var(--text-xs); margin-top: var(--space-1); display: block;">
-                  Ceritakan singkat apa yang ingin kamu bicarakan
-                </small>
-              </div>
-              <div class="modal-actions">
-                <button type="button" class="btn btn-ghost" id="cancelCompanionChat">Batal</button>
-                <button type="submit" class="btn btn-primary">Mulai Chat</button>
-              </div>
-            </form>
-          </div>
         </div>
       </section>
     </main>
+  </div>
+
+  <!-- ============================================
+       Global Modals & Bottom Sheets (at end of body for proper fixed positioning)
+       ============================================ -->
+
+  <!-- Listener Picker Bottom Sheet -->
+  <div id="listenerPickerOverlay" class="modal-overlay bottom-sheet-overlay" hidden>
+    <div class="bottom-sheet" role="dialog" aria-modal="true" aria-labelledby="pickerTitle">
+      <div class="bottom-sheet-header">
+        <div class="bottom-sheet-handle"></div>
+        <div class="bottom-sheet-title-row">
+          <h3 id="pickerTitle">Pilih Pendengar</h3>
+          <button class="btn-close-modal" id="btnClosePicker" aria-label="Tutup">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </button>
+        </div>
+        <p class="bottom-sheet-subtitle">Pilih pendengar yang kamu inginkan untuk ngobrol</p>
+      </div>
+      <div class="bottom-sheet-body" id="pickerList">
+        <!-- Will be populated by JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- New Chat Options Bottom Sheet -->
+  <div id="newChatOptionsOverlay" class="modal-overlay bottom-sheet-overlay" hidden>
+    <div class="bottom-sheet" role="dialog" aria-modal="true">
+      <div class="bottom-sheet-header">
+        <div class="bottom-sheet-handle"></div>
+        <h3 style="text-align: center; margin: 0;">Buat Chat Baru</h3>
+      </div>
+      <div class="bottom-sheet-body options-list">
+        <button class="option-item" id="optionNewCompanionChat">
+          <div class="option-icon companion">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+            </svg>
+          </div>
+          <div class="option-content">
+            <span class="option-title">Ngobrol dengan Pendengar</span>
+            <span class="option-desc">Chat pribadi dengan pendengar terlatih</span>
+          </div>
+          <svg class="option-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+          </svg>
+        </button>
+        <button class="option-item" id="optionNewGroupChat">
+          <div class="option-icon group">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+            </svg>
+          </div>
+          <div class="option-content">
+            <span class="option-title">Buat Ruang Grup</span>
+            <span class="option-desc">Ruang chat terbuka untuk semua</span>
+          </div>
+          <svg class="option-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Companion Chat Modal -->
+  <div id="companionChatModal" class="modal-overlay center-modal-overlay" hidden>
+    <div class="center-modal" role="dialog" aria-modal="true">
+      <h3 class="modal-title">
+        Mulai Chat dengan 
+        <span id="selectedCompanionName" style="color: var(--primary); font-weight: 800;">Teman</span>
+      </h3>
+      <form id="companionChatForm">
+        <div class="form-group">
+          <label for="companionChatTopic">Topik yang ingin dibahas</label>
+          <input 
+            type="text" 
+            id="companionChatTopic" 
+            placeholder="Contoh: Merasa cemas akhir-akhir ini" 
+            required 
+            minlength="3"
+            maxlength="200"
+          />
+          <small style="color: var(--text-muted); font-size: var(--text-xs); margin-top: var(--space-1); display: block;">
+            Ceritakan singkat apa yang ingin kamu bicarakan
+          </small>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-ghost" id="cancelCompanionChat">Batal</button>
+          <button type="submit" class="btn btn-primary">Mulai Chat</button>
+        </div>
+      </form>
+    </div>
   </div>
 
   <!-- Loading Overlay -->

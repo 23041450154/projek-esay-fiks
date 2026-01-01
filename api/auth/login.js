@@ -11,6 +11,33 @@ const {
 } = require('../_lib/auth');
 const { strictRateLimit } = require('../_lib/rateLimit');
 
+/**
+ * Generate unique anon_number for user anonymization
+ * Returns a number between 1-999 that is not already used
+ */
+async function assignAnonNumber(db) {
+  const maxAttempts = 50;
+  
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    // Generate random number 1-999
+    const candidate = Math.floor(Math.random() * 999) + 1;
+    
+    // Check if already used
+    const { data: existing } = await db
+      .from('users')
+      .select('user_id')
+      .eq('anon_number', candidate)
+      .maybeSingle();
+    
+    if (!existing) {
+      return candidate;
+    }
+  }
+  
+  // Fallback: use timestamp-based number
+  return Math.floor(Date.now() % 10000);
+}
+
 module.exports = async function handler(req, res) {
   // Only allow POST
   if (req.method !== 'POST') {
@@ -57,14 +84,29 @@ module.exports = async function handler(req, res) {
       // Existing user
       userId = existingUser.user_id;
       hasConsented = !!existingUser.consent_at;
+      
+      // If existing user doesn't have anon_number, assign one
+      if (!existingUser.anon_number) {
+        const anonNumber = await assignAnonNumber(supabase);
+        if (anonNumber) {
+          await supabase
+            .from('users')
+            .update({ anon_number: anonNumber })
+            .eq('user_id', userId);
+        }
+      }
     } else {
-      // New user - create record
+      // Generate unique anon_number for new user
+      const anonNumber = await assignAnonNumber(supabase);
+      
+      // New user - create record with anon_number
       const { data: newUser, error: insertError } = await supabase
         .from('users')
         .insert([
           {
             display_name: cleanDisplayName,
             invite_code: cleanInviteCode,
+            anon_number: anonNumber,
           }
         ])
         .select()

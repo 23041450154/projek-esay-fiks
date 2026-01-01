@@ -44,7 +44,7 @@
         </ul>
       </section>
 
-      <section class="crisis-box">
+      <!-- <section class="crisis-box">
         <h3 class="crisis-title">Peringatan Penting</h3>
         <p style="font-size: var(--text-sm); color: var(--text-secondary); margin-bottom: var(--space-4);">
           Jika kamu sedang dalam krisis atau memiliki pikiran untuk menyakiti diri sendiri, 
@@ -53,7 +53,7 @@
         <p class="crisis-contact"><strong>Into The Light:</strong> 119 ext 8</p>
         <p class="crisis-contact"><strong>Yayasan Pulih:</strong> (021) 788-42580</p>
         <p class="crisis-contact"><strong>IGD Rumah Sakit terdekat</strong></p>
-      </section>
+      </section> -->
 
       <section class="consent-section">
         <label class="checkbox-label">
@@ -121,6 +121,15 @@
           const data = await res.json();
           throw new Error(data.error || 'Gagal menyimpan persetujuan');
         }
+
+        // Mark as new user completing onboarding
+        // This flag tells app.html to show "Teman Ngobrol" tab first
+        localStorage.setItem('rd_onboarding_completed', 'true');
+        localStorage.setItem('rd_is_new_user', 'true');
+        
+        // Clear any previous remember state for fresh start
+        localStorage.removeItem('rd_app_last_tab');
+        localStorage.removeItem('rd_app_last_room');
 
         window.location.href = '/app.html';
 

@@ -1,42 +1,640 @@
 <!DOCTYPE html>
+
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Ruang Dengar - Ruang Aman untuk Bercerita</title>
-  <link rel="stylesheet" href="styles.css">
+  <link rel="icon" type="image/jpeg" href="assets/logo/logo-imadiksi.jpg">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html, body {
+      height: 100%;
+      overflow-x: hidden;
+      overflow-y: auto;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: linear-gradient(135deg, #F0FDF9 0%, #E8FAF8 50%, #E6F4F8 100%);
+      color: #1e293b;
+    }
+
+    .landing-page {
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+    }
+
+    /* Logo header - always visible */
+    .logo-header {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 1.5rem;
+      flex-shrink: 0;
+    }
+
+    .logo-header img {
+      width: 52px;
+      height: 52px;
+      border-radius: 14px;
+      object-fit: cover;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .logo-header span {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #2C7A7B;
+    }
+
+    .landing-container {
+      width: 100%;
+      max-width: 640px;
+    }
+
+    /* Hero Section - Compact */
+    .hero-section {
+      text-align: center;
+      margin-bottom: 1rem;
+    }
+
+    .hero-title {
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: #1e293b;
+      margin-bottom: 0.35rem;
+      letter-spacing: -0.5px;
+      line-height: 1.2;
+    }
+
+    .hero-title span {
+      color: #2C7A7B;
+    }
+
+    .hero-subtitle {
+      font-size: 0.85rem;
+      color: #64748b;
+      margin-bottom: 0.75rem;
+      line-height: 1.4;
+    }
+
+    .hero-pills {
+      display: flex;
+      justify-content: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .hero-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 10px;
+      background: rgba(44, 122, 123, 0.1);
+      color: #2C7A7B;
+      border-radius: 15px;
+      font-size: 0.7rem;
+      font-weight: 500;
+    }
+
+    .hero-pill svg {
+      width: 11px;
+      height: 11px;
+    }
+
+    /* Hide old landing-brand section */
+    .landing-brand {
+      display: none;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 1.25rem;
+    }
+
+    .logo img {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      object-fit: cover;
+    }
+
+    .logo span {
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: #2C7A7B;
+    }
+
+    .landing-title {
+      font-size: 2rem;
+      font-weight: 700;
+      color: #1e293b;
+      margin-bottom: 0.75rem;
+      line-height: 1.2;
+    }
+
+    .landing-title span {
+      color: #2C7A7B;
+    }
+
+    .landing-subtitle {
+      font-size: 1rem;
+      color: #64748b;
+      line-height: 1.6;
+      margin-bottom: 1.25rem;
+    }
+
+    .feature-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .feature-pill {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 6px 12px;
+      background: white;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      color: #64748b;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+      border: 1px solid rgba(44, 122, 123, 0.15);
+    }
+
+    .feature-pill svg {
+      width: 14px;
+      height: 14px;
+      color: #2C7A7B;
+    }
+
+    .login-card {
+      background: white;
+      border-radius: 24px;
+      padding: 2rem;
+      box-shadow: 0 8px 40px rgba(0, 0, 0, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.8);
+      width: 100%;
+    }
+
+    .login-mode-hint {
+      text-align: center;
+      font-size: 0.85rem;
+      color: #64748b;
+      margin-bottom: 1.25rem;
+      padding: 10px 14px;
+      background: linear-gradient(135deg, #f0fdf9 0%, #f1f5f9 100%);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .login-mode-hint svg {
+      width: 18px;
+      height: 18px;
+      color: #2C7A7B;
+    }
+
+    .login-tabs {
+      display: none;
+    }
+
+    .form-group {
+      margin-bottom: 1rem;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #334155;
+      margin-bottom: 6px;
+    }
+
+    .form-input {
+      width: 100%;
+      padding: 12px 14px;
+      font-size: 0.95rem;
+      color: #1e293b;
+      background: #f8fafc;
+      border: 2px solid #e2e8f0;
+      border-radius: 10px;
+      transition: all 0.2s ease;
+    }
+
+    .form-input:focus {
+      outline: none;
+      border-color: #2C7A7B;
+      background: white;
+      box-shadow: 0 0 0 3px rgba(44, 122, 123, 0.1);
+    }
+
+    .form-input::placeholder {
+      color: #94a3b8;
+    }
+
+    .form-hint {
+      font-size: 0.7rem;
+      color: #94a3b8;
+      margin-top: 4px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .form-hint svg {
+      width: 11px;
+      height: 11px;
+    }
+
+    .btn-primary {
+      width: 100%;
+      padding: 14px 20px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: white;
+      background: linear-gradient(135deg, #2C7A7B 0%, #38A3A5 100%);
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      box-shadow: 0 4px 15px rgba(44, 122, 123, 0.25);
+    }
+
+    .btn-primary:hover {
+      opacity: 0.95;
+    }
+
+    .btn-primary:active {
+      opacity: 0.9;
+    }
+
+    .btn-primary:disabled {
+      background: #94a3b8;
+      box-shadow: none;
+      cursor: not-allowed;
+    }
+
+    .alt-login-link {
+      text-align: center;
+      margin-top: 1rem;
+      padding-top: 1rem;
+      border-top: 1px solid #f1f5f9;
+    }
+
+    .alt-login-link a {
+      font-size: 0.8rem;
+      color: #64748b;
+      text-decoration: none;
+      transition: color 0.2s ease;
+    }
+
+    .alt-login-link a:hover {
+      color: #2C7A7B;
+      text-decoration: underline;
+    }
+
+    .login-error {
+      background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+      color: #dc2626;
+      padding: 10px 14px;
+      border-radius: 10px;
+      font-size: 0.8rem;
+      margin-top: 0.75rem;
+      display: none;
+      align-items: center;
+      gap: 8px;
+      border: 1px solid #fecaca;
+      animation: shake 0.4s ease;
+    }
+
+    .login-error.show {
+      display: flex;
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-5px); }
+      75% { transform: translateX(5px); }
+    }
+
+    .disclaimer-compact {
+      margin-top: 1rem;
+      padding: 10px 12px;
+      background: rgba(255, 251, 235, 0.9);
+      border-radius: 10px;
+      border: 1px solid rgba(234, 179, 8, 0.2);
+      font-size: 0.7rem;
+      color: #64748b;
+      line-height: 1.4;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    .disclaimer-compact svg {
+      width: 14px;
+      height: 14px;
+      color: #b45309;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    .login-form {
+      display: none;
+    }
+
+    .login-form.active {
+      display: block;
+    }
+
+    /* Disclaimer hanya untuk user, bukan companion */
+    .disclaimer-compact.hide-for-companion {
+      display: none;
+    }
+
+    @media (max-width: 768px) {
+      .landing-page {
+        padding: 1rem;
+        min-height: 100dvh;
+      }
+
+      .logo-header {
+        margin-bottom: 0.75rem;
+      }
+
+      .logo-header img {
+        width: 44px;
+        height: 44px;
+      }
+
+      .logo-header span {
+        font-size: 1.25rem;
+      }
+
+      .hero-section {
+        margin-bottom: 0.75rem;
+      }
+
+      .hero-title {
+        font-size: 1.2rem;
+      }
+
+      .hero-subtitle {
+        font-size: 0.8rem;
+        margin-bottom: 0.5rem;
+      }
+
+      .hero-pills {
+        gap: 5px;
+      }
+
+      .hero-pill {
+        padding: 3px 8px;
+        font-size: 0.65rem;
+      }
+
+      .hero-pill svg {
+        width: 10px;
+        height: 10px;
+      }
+
+      .landing-container {
+        max-width: 100%;
+      }
+
+      .login-card {
+        padding: 1.5rem;
+        border-radius: 20px;
+        max-height: calc(100dvh - 200px);
+        overflow-y: auto;
+      }
+
+      .login-mode-hint {
+        padding: 8px 12px;
+        font-size: 0.8rem;
+        margin-bottom: 1rem;
+      }
+
+      .form-group {
+        margin-bottom: 0.85rem;
+      }
+
+      .form-label {
+        font-size: 0.8rem;
+        margin-bottom: 5px;
+      }
+
+      .form-input {
+        padding: 11px 12px;
+        font-size: 0.9rem;
+      }
+
+      .btn-primary {
+        padding: 12px 16px;
+        font-size: 0.9rem;
+      }
+
+      .disclaimer-compact {
+        padding: 8px 10px;
+        font-size: 0.65rem;
+      }
+
+      .disclaimer-compact svg {
+        width: 12px;
+        height: 12px;
+      }
+    }
+
+    /* Untuk layar sangat pendek, card bisa scroll */
+    @media (max-height: 600px) {
+      .landing-page {
+        padding: 0.75rem;
+        justify-content: flex-start;
+        padding-top: 0.75rem;
+      }
+
+      .logo-header {
+        margin-bottom: 0.5rem;
+      }
+
+      .logo-header img {
+        width: 36px;
+        height: 36px;
+      }
+
+      .logo-header span {
+        font-size: 1rem;
+      }
+
+      .hero-section {
+        margin-bottom: 0.5rem;
+      }
+
+      .hero-title {
+        font-size: 1.05rem;
+      }
+
+      .hero-subtitle {
+        font-size: 0.72rem;
+        margin-bottom: 0.4rem;
+      }
+
+      .hero-pill {
+        padding: 2px 6px;
+        font-size: 0.6rem;
+      }
+
+      .hero-pill svg {
+        width: 9px;
+        height: 9px;
+      }
+
+      .login-card {
+        padding: 1rem;
+        max-height: calc(100dvh - 150px);
+        overflow-y: auto;
+      }
+
+      .login-mode-hint {
+        margin-bottom: 0.6rem;
+        padding: 5px 8px;
+        font-size: 0.7rem;
+      }
+
+      .form-group {
+        margin-bottom: 0.65rem;
+      }
+
+      .btn-primary {
+        padding: 10px 14px;
+        font-size: 0.85rem;
+      }
+
+      .disclaimer-compact {
+        margin-top: 0.6rem;
+        padding: 6px 8px;
+        font-size: 0.6rem;
+      }
+    }
+
+    .loading-spinner {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-radius: 50%;
+      border-top-color: white;
+      animation: spin 0.8s linear infinite;
+      margin-right: 8px;
+      vertical-align: middle;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Remember Me Checkbox Styles */
+    .remember-me-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 1rem;
+      margin-top: 0.5rem;
+    }
+
+    .remember-me-checkbox {
+      width: 18px;
+      height: 18px;
+      accent-color: #2C7A7B;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .remember-me-label {
+      font-size: 0.8rem;
+      color: #64748b;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .remember-me-label:hover {
+      color: #2C7A7B;
+    }
+
+    @media (max-width: 768px) {
+      .remember-me-group {
+        margin-bottom: 0.85rem;
+      }
+
+      .remember-me-checkbox {
+        width: 16px;
+        height: 16px;
+      }
+
+      .remember-me-label {
+        font-size: 0.75rem;
+      }
+    }
+  </style>
 </head>
 <body class="landing-page">
+  <!-- Logo Header - Always Visible -->
+  <div class="logo-header">
+    <img src="assets/logo/logo-imadiksi.jpg" alt="Logo Imadiksi">
+    <span>Ruang Dengar</span>
+  </div>
+
+  <!-- Hero Section - Compact -->
+  <div class="hero-section">
+    <h1 class="hero-title">Ruang Aman untuk <span>Bercerita</span></h1>
+    <p class="hero-subtitle">Layanan dukungan sebaya gratis dan anonim</p>
+    <div class="hero-pills">
+      <span class="hero-pill">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+        Anonim & Aman
+      </span>
+      <span class="hero-pill">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+        Dukungan Sebaya
+      </span>
+      <span class="hero-pill">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
+        Chat Real-time
+      </span>
+    </div>
+  </div>
+
   <div class="landing-container">
-    <header class="landing-header">
-      <div class="logo">
-        <img src="assets/logo/logo-imadiksi.jpg" alt="Logo Imadiksi" style="width: 50px; height: 50px; object-fit: cover; border-radius: 8px; display: block;">
-        <span>Ruang Dengar</span>
-      </div>
-      <h1 class="landing-title">Ruang Aman untuk Bercerita</h1>
-      <p class="landing-subtitle">
-        Tempat berbagi cerita, menulis jurnal, dan menemukan dukungan tanpa penilaian.
-      </p>
-    </header>
-
     <div class="login-card">
-      <!-- Login Mode Tabs -->
-      <div class="login-tabs">
-        <button type="button" class="login-tab active" data-mode="user">
-          <svg style="width: 18px; height: 18px; margin-right: 6px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-          </svg>
-          Pengguna
-        </button>
-        <button type="button" class="login-tab" data-mode="companion">
-          <svg style="width: 18px; height: 18px; margin-right: 6px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
-          </svg>
-          Teman Ngobrol
-        </button>
+      <div class="login-mode-hint">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+        </svg>
+        Masuk sebagai Pengguna
       </div>
 
-      <!-- User Login Form -->
+      <div class="login-tabs" style="display:none;">
+        <button type="button" class="login-tab active" data-mode="user">Pengguna</button>
+        <button type="button" class="login-tab" data-mode="companion">Teman Ngobrol</button>
+      </div>
+
       <form id="loginForm" class="login-form active">
         <div class="form-group">
           <label class="form-label" for="inviteCode">Kode Undangan</label>
@@ -62,17 +660,31 @@
             required
             autocomplete="off"
           >
-          <p class="form-hint">Nama ini akan terlihat oleh pengguna lain di chat</p>
+          <p class="form-hint">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            Nama ini akan terlihat oleh pengguna lain
+          </p>
         </div>
 
-        <button type="submit" id="loginBtn" class="btn btn-primary btn-block btn-lg">
-          Masuk ke SafeSpace
+        <div class="remember-me-group">
+          <input type="checkbox" id="rememberMeUser" class="remember-me-checkbox">
+          <label for="rememberMeUser" class="remember-me-label">Ingat saya di perangkat ini</label>
+        </div>
+
+        <button type="submit" id="loginBtn" class="btn-primary">
+          Masuk ke Ruang Dengar
         </button>
 
-        <div id="loginError" class="login-error" hidden></div>
+        <div id="loginError" class="login-error" hidden>
+          <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+          <span></span>
+        </div>
       </form>
 
-      <!-- Companion Login Form -->
       <form id="companionLoginForm" class="login-form">
         <div class="form-group">
           <label class="form-label" for="companionUsername">Username</label>
@@ -98,29 +710,126 @@
           >
         </div>
 
-        <button type="submit" id="companionLoginBtn" class="btn btn-primary btn-block btn-lg">
+        <div class="remember-me-group">
+          <input type="checkbox" id="rememberMeCompanion" class="remember-me-checkbox">
+          <label for="rememberMeCompanion" class="remember-me-label">Ingat username di perangkat ini</label>
+        </div>
+
+        <button type="submit" id="companionLoginBtn" class="btn-primary">
           Masuk sebagai Teman Ngobrol
         </button>
 
-        <div id="companionLoginError" class="login-error" hidden></div>
+        <div id="companionLoginError" class="login-error" hidden>
+          <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+          <span></span>
+        </div>
       </form>
-    </div>
 
-    <div class="disclaimer-box">
-      <p class="disclaimer-title">Penting untuk Diketahui</p>
-      <p class="disclaimer-text">
-        SafeSpace adalah platform dukungan sebaya dan bukan pengganti layanan kesehatan mental profesional. 
-        Jika Anda mengalami krisis atau memiliki pikiran untuk menyakiti diri sendiri, 
-        segera hubungi layanan darurat atau profesional kesehatan mental.
-      </p>
+      <div class="disclaimer-compact">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+        </svg>
+        <span>Ruang Dengar adalah platform dukungan sebaya, bukan pengganti layanan kesehatan mental profesional.</span>
+      </div>
+
+      <div class="alt-login-link">
+        <a href="#" id="switchToCompanion">Masuk sebagai Teman Ngobrol?</a>
+      </div>
     </div>
   </div>
 
   <script>
-    // Check if already logged in
+    // ============================================
+    // Remember Me - localStorage Keys
+    // ============================================
+    const REMEMBER_KEYS = {
+      enabled: 'rd_remember_enabled',
+      lastRole: 'rd_last_role',
+      userName: 'rd_user_name',
+      userCode: 'rd_user_code',
+      companionUsername: 'rd_companion_username'
+    };
+
+    // ============================================
+    // Remember Me - Helper Functions
+    // ============================================
+    function saveRememberData(role) {
+      if (role === 'user') {
+        const inviteCode = document.getElementById('inviteCode').value.trim();
+        const displayName = document.getElementById('displayName').value.trim();
+        const rememberMe = document.getElementById('rememberMeUser').checked;
+
+        if (rememberMe) {
+          localStorage.setItem(REMEMBER_KEYS.enabled, 'true');
+          localStorage.setItem(REMEMBER_KEYS.lastRole, 'user');
+          localStorage.setItem(REMEMBER_KEYS.userName, displayName);
+          localStorage.setItem(REMEMBER_KEYS.userCode, inviteCode);
+        } else {
+          clearRememberData();
+        }
+      } else if (role === 'companion') {
+        const username = document.getElementById('companionUsername').value.trim();
+        const rememberMe = document.getElementById('rememberMeCompanion').checked;
+
+        if (rememberMe) {
+          localStorage.setItem(REMEMBER_KEYS.enabled, 'true');
+          localStorage.setItem(REMEMBER_KEYS.lastRole, 'companion');
+          localStorage.setItem(REMEMBER_KEYS.companionUsername, username);
+          // NEVER save password for security
+        } else {
+          clearRememberData();
+        }
+      }
+    }
+
+    function clearRememberData() {
+      Object.values(REMEMBER_KEYS).forEach(key => {
+        localStorage.removeItem(key);
+      });
+    }
+
+    function restoreRememberData() {
+      const enabled = localStorage.getItem(REMEMBER_KEYS.enabled) === 'true';
+      if (!enabled) return;
+
+      const lastRole = localStorage.getItem(REMEMBER_KEYS.lastRole);
+
+      if (lastRole === 'user') {
+        // Restore user form data
+        const userName = localStorage.getItem(REMEMBER_KEYS.userName);
+        const userCode = localStorage.getItem(REMEMBER_KEYS.userCode);
+
+        if (userName) {
+          document.getElementById('displayName').value = userName;
+        }
+        if (userCode) {
+          document.getElementById('inviteCode').value = userCode;
+        }
+        // Check the remember me checkbox
+        document.getElementById('rememberMeUser').checked = true;
+
+      } else if (lastRole === 'companion') {
+        // Restore companion form data (username only, never password)
+        const companionUsername = localStorage.getItem(REMEMBER_KEYS.companionUsername);
+
+        if (companionUsername) {
+          document.getElementById('companionUsername').value = companionUsername;
+        }
+        // Check the remember me checkbox
+        document.getElementById('rememberMeCompanion').checked = true;
+      }
+
+      // NOTE: We do NOT auto-switch to companion tab
+      // Tab default tetap Pengguna
+    }
+
+    // ============================================
+    // Check existing auth (auto-redirect if logged in)
+    // ============================================
     (async () => {
       try {
-        // Check user login
         const res = await fetch('/api/me');
         if (res.ok) {
           const data = await res.json();
@@ -134,7 +843,6 @@
           }
         }
         
-        // Check companion login
         const companionRes = await fetch('/api/companion/me');
         if (companionRes.ok) {
           const companionData = await companionRes.json();
@@ -143,36 +851,48 @@
             return;
           }
         }
-      } catch (e) {
-        // Not logged in, stay on landing page
-      }
+      } catch (e) {}
+
+      // Restore remember data after auth check (only if not already logged in)
+      restoreRememberData();
     })();
 
-    // Handle login mode tabs
-    const loginTabs = document.querySelectorAll('.login-tab');
-    const loginForms = document.querySelectorAll('.login-form');
+    // ============================================
+    // Tab Switching Logic
+    // ============================================
+    const loginModeHint = document.querySelector('.login-mode-hint');
+    const switchLink = document.getElementById('switchToCompanion');
+    const loginForm = document.getElementById('loginForm');
+    const companionLoginForm = document.getElementById('companionLoginForm');
+    const disclaimerBox = document.querySelector('.disclaimer-compact');
+    
+    let currentMode = 'user';
 
-    loginTabs.forEach(tab => {
-      tab.addEventListener('click', () => {
-        const mode = tab.dataset.mode;
-        
-        // Update active tab
-        loginTabs.forEach(t => t.classList.remove('active'));
-        tab.classList.add('active');
-        
-        // Show corresponding form
-        loginForms.forEach(form => {
-          if ((mode === 'user' && form.id === 'loginForm') ||
-              (mode === 'companion' && form.id === 'companionLoginForm')) {
-            form.classList.add('active');
-          } else {
-            form.classList.remove('active');
-          }
-        });
-      });
+    switchLink.addEventListener('click', (e) => {
+      e.preventDefault();
+      
+      if (currentMode === 'user') {
+        currentMode = 'companion';
+        loginForm.classList.remove('active');
+        companionLoginForm.classList.add('active');
+        loginModeHint.innerHTML = '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg> Masuk sebagai Teman Ngobrol';
+        switchLink.textContent = 'Masuk sebagai Pengguna?';
+        // Sembunyikan disclaimer untuk Teman Ngobrol
+        if (disclaimerBox) disclaimerBox.style.display = 'none';
+      } else {
+        currentMode = 'user';
+        companionLoginForm.classList.remove('active');
+        loginForm.classList.add('active');
+        loginModeHint.innerHTML = '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg> Masuk sebagai Pengguna';
+        switchLink.textContent = 'Masuk sebagai Teman Ngobrol?';
+        // Tampilkan kembali disclaimer untuk Pengguna
+        if (disclaimerBox) disclaimerBox.style.display = 'flex';
+      }
     });
 
-    // Handle user login form
+    // ============================================
+    // User Login Form
+    // ============================================
     document.getElementById('loginForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       
@@ -182,10 +902,9 @@
       const inviteCode = document.getElementById('inviteCode').value.trim();
       const displayName = document.getElementById('displayName').value.trim();
 
-      // Disable button
       loginBtn.disabled = true;
-      loginBtn.textContent = 'Memproses...';
-      errorDiv.hidden = true;
+      loginBtn.innerHTML = '<span class="loading-spinner"></span> Memproses...';
+      errorDiv.classList.remove('show');
 
       try {
         const res = await fetch('/api/auth/login', {
@@ -200,7 +919,9 @@
           throw new Error(data.error || 'Login gagal');
         }
 
-        // Redirect based on consent status
+        // Save remember data before redirect
+        saveRememberData('user');
+
         if (data.user.hasConsented) {
           window.location.href = '/app.html';
         } else {
@@ -208,14 +929,16 @@
         }
 
       } catch (err) {
-        errorDiv.textContent = err.message;
-        errorDiv.hidden = false;
+        errorDiv.querySelector('span').textContent = err.message;
+        errorDiv.classList.add('show');
         loginBtn.disabled = false;
-        loginBtn.textContent = 'Masuk ke SafeSpace';
+        loginBtn.textContent = 'Masuk ke Ruang Dengar';
       }
     });
 
-    // Handle companion login form
+    // ============================================
+    // Companion Login Form
+    // ============================================
     document.getElementById('companionLoginForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       
@@ -225,10 +948,9 @@
       const username = document.getElementById('companionUsername').value.trim();
       const password = document.getElementById('companionPassword').value;
 
-      // Disable button
       loginBtn.disabled = true;
-      loginBtn.textContent = 'Memproses...';
-      errorDiv.hidden = true;
+      loginBtn.innerHTML = '<span class="loading-spinner"></span> Memproses...';
+      errorDiv.classList.remove('show');
 
       try {
         const res = await fetch('/api/companion/login', {
@@ -244,12 +966,14 @@
           throw new Error(data.error || 'Login gagal');
         }
 
-        // Redirect to companion dashboard
+        // Save remember data before redirect (username only, never password)
+        saveRememberData('companion');
+
         window.location.href = '/companion.html';
 
       } catch (err) {
-        errorDiv.textContent = err.message;
-        errorDiv.hidden = false;
+        errorDiv.querySelector('span').textContent = err.message;
+        errorDiv.classList.add('show');
         loginBtn.disabled = false;
         loginBtn.textContent = 'Masuk sebagai Teman Ngobrol';
       }

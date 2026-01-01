@@ -50,15 +50,20 @@ function verifyToken(token) {
  */
 function createSessionCookie(userData) {
   const token = createToken(userData);
+  const isProduction = process.env.NODE_ENV === 'production';
   
   const cookieOptions = [
     `${COOKIE_NAME}=${token}`,
     'HttpOnly',
-    'Secure',
-    'SameSite=Strict',
+    `SameSite=${isProduction ? 'Strict' : 'Lax'}`,
     `Max-Age=${COOKIE_MAX_AGE}`,
     'Path=/',
   ];
+
+  // Only add Secure flag in production (HTTPS)
+  if (isProduction) {
+    cookieOptions.push('Secure');
+  }
 
   return {
     'Set-Cookie': cookieOptions.join('; '),
@@ -70,14 +75,20 @@ function createSessionCookie(userData) {
  * @returns {Object} Headers object with Set-Cookie to clear
  */
 function clearSessionCookie() {
+  const isProduction = process.env.NODE_ENV === 'production';
+  
   const cookieOptions = [
     `${COOKIE_NAME}=`,
     'HttpOnly',
-    'Secure',
-    'SameSite=Strict',
+    `SameSite=${isProduction ? 'Strict' : 'Lax'}`,
     'Max-Age=0',
     'Path=/',
   ];
+
+  // Only add Secure flag in production (HTTPS)
+  if (isProduction) {
+    cookieOptions.push('Secure');
+  }
 
   return {
     'Set-Cookie': cookieOptions.join('; '),

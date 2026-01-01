@@ -59,13 +59,38 @@ module.exports = async function handler(req, res) {
       }
 
       // Verify session exists AND check access permission
-      const { data: session, error: sessionError } = await supabase
+      // Also get status and room_type for closed room handling
+      let session = null;
+      let hasStatusColumn = true;
+
+      const { data: sessionData, error: sessionError } = await supabase
         .from('chat_sessions')
-        .select('session_id, created_by, companion_id')
+        .select('session_id, created_by, companion_id, room_type, status')
         .eq('session_id', sessionId)
         .single();
 
-      if (sessionError || !session) {
+      if (sessionError) {
+        // If column doesn't exist, try without status columns
+        if (sessionError.code === '42703') {
+          hasStatusColumn = false;
+          const { data: fallbackSession, error: fallbackError } = await supabase
+            .from('chat_sessions')
+            .select('session_id, created_by, companion_id')
+            .eq('session_id', sessionId)
+            .single();
+
+          if (fallbackError || !fallbackSession) {
+            return res.status(404).json({ error: 'Session not found' });
+          }
+          session = fallbackSession;
+        } else {
+          return res.status(404).json({ error: 'Session not found' });
+        }
+      } else {
+        session = sessionData;
+      }
+
+      if (!session) {
         return res.status(404).json({ error: 'Session not found' });
       }
 
@@ -83,9 +108,12 @@ module.exports = async function handler(req, res) {
           message_id,
           session_id,
           user_id,
+          sender_id,
           display_name,
           text,
-          created_at
+          created_at,
+          is_system,
+          is_companion
         `)
         .eq('session_id', sessionId)
         .order('created_at', { ascending: true });
@@ -99,17 +127,25 @@ module.exports = async function handler(req, res) {
 
       if (error) throw error;
 
+      // Return session status along with messages
       return res.status(200).json({
         messages: messages.map(m => ({
           messageId: m.message_id,
           sessionId: m.session_id,
-          userId: m.user_id,
+          userId: m.user_id || m.sender_id,
           displayName: m.display_name,
           text: escapeHtml(m.text),
           riskFlag: false, // Risk flag not implemented yet
           createdAt: m.created_at,
           isOwn: m.user_id === user.userId,
+          isCompanion: m.is_companion || false,
+          isSystem: m.is_system || false,
         })),
+        session: {
+          sessionId: session.session_id,
+          roomType: hasStatusColumn ? (session.room_type || 'private') : 'private',
+          status: hasStatusColumn ? (session.status || 'active') : 'active',
+        },
         serverTime: new Date().toISOString(),
       });
     }
@@ -128,14 +164,44 @@ module.exports = async function handler(req, res) {
       }
 
       // Verify session exists AND check access permission
-      const { data: session, error: sessionError } = await supabase
+      // Also check status to prevent sending to closed rooms
+      let session = null;
+      let hasStatusColumn = true;
+
+      const { data: sessionData, error: sessionError } = await supabase
         .from('chat_sessions')
-        .select('session_id, created_by, companion_id')
+        .select('session_id, created_by, companion_id, status')
         .eq('session_id', sessionId)
         .single();
 
-      if (sessionError || !session) {
+      if (sessionError) {
+        // If column doesn't exist, try without status column
+        if (sessionError.code === '42703') {
+          hasStatusColumn = false;
+          const { data: fallbackSession, error: fallbackError } = await supabase
+            .from('chat_sessions')
+            .select('session_id, created_by, companion_id')
+            .eq('session_id', sessionId)
+            .single();
+
+          if (fallbackError || !fallbackSession) {
+            return res.status(404).json({ error: 'Session not found' });
+          }
+          session = fallbackSession;
+        } else {
+          return res.status(404).json({ error: 'Session not found' });
+        }
+      } else {
+        session = sessionData;
+      }
+
+      if (!session) {
         return res.status(404).json({ error: 'Session not found' });
+      }
+
+      // Check if room is closed
+      if (hasStatusColumn && session.status === 'closed') {
+        return res.status(400).json({ error: 'Ruang chat ini telah ditutup dan tidak dapat menerima pesan baru.' });
       }
 
       // Check access permission:
@@ -144,11 +210,6 @@ module.exports = async function handler(req, res) {
       if (session.companion_id !== null && session.created_by !== user.userId) {
         return res.status(403).json({ error: 'Access denied to this session' });
       }
-
-      // Note: Status check disabled until status column is added to database
-      // if (session.status === 'closed') {
-      //   return res.status(400).json({ error: 'This chat session is closed' });
-      // }
 
       // Check for risk keywords (for logging/future use)
       const hasRisk = detectRisk(cleanText);
