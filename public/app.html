@@ -682,35 +682,35 @@
        Global Modals & Bottom Sheets (at end of body for proper fixed positioning)
        ============================================ -->
 
-  <!-- Listener Picker Bottom Sheet -->
-  <div id="listenerPickerOverlay" class="modal-overlay bottom-sheet-overlay" hidden>
-    <div class="bottom-sheet" role="dialog" aria-modal="true" aria-labelledby="pickerTitle">
-      <div class="bottom-sheet-header">
-        <div class="bottom-sheet-handle"></div>
-        <div class="bottom-sheet-title-row">
-          <h3 id="pickerTitle">Pilih Pendengar</h3>
+  <!-- Listener Picker Modal - Center -->
+  <div id="listenerPickerOverlay" class="modal-overlay center-modal-overlay" hidden>
+    <div class="center-modal" role="dialog" aria-modal="true" aria-labelledby="pickerTitle" style="padding: var(--space-5); max-height: 80vh;">
+      <div style="text-align: center; margin-bottom: var(--space-3);">
+        <div style="width: 36px; height: 4px; background: var(--border); border-radius: 4px; margin: 0 auto var(--space-3);"></div>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-2);">
+          <h3 id="pickerTitle" style="margin: 0; font-size: 18px; font-weight: 700;">Pilih Pendengar</h3>
           <button class="btn-close-modal" id="btnClosePicker" aria-label="Tutup">
             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
             </svg>
           </button>
         </div>
-        <p class="bottom-sheet-subtitle">Pilih pendengar yang kamu inginkan untuk ngobrol</p>
+        <p style="font-size: 14px; color: var(--text-secondary); margin: 0;">Pilih pendengar yang kamu inginkan untuk ngobrol</p>
       </div>
-      <div class="bottom-sheet-body" id="pickerList">
+      <div id="pickerList" style="max-height: 50vh; overflow-y: auto; -webkit-overflow-scrolling: touch;">
         <!-- Will be populated by JS -->
       </div>
     </div>
   </div>
 
-  <!-- New Chat Options Bottom Sheet -->
-  <div id="newChatOptionsOverlay" class="modal-overlay bottom-sheet-overlay" hidden>
-    <div class="bottom-sheet" role="dialog" aria-modal="true">
-      <div class="bottom-sheet-header">
-        <div class="bottom-sheet-handle"></div>
-        <h3 style="text-align: center; margin: 0;">Buat Chat Baru</h3>
+  <!-- New Chat Options Modal - Center -->
+  <div id="newChatOptionsOverlay" class="modal-overlay center-modal-overlay" hidden>
+    <div class="center-modal" role="dialog" aria-modal="true" style="padding: var(--space-5);">
+      <div style="text-align: center; margin-bottom: var(--space-4);">
+        <div style="width: 36px; height: 4px; background: var(--border); border-radius: 4px; margin: 0 auto var(--space-3);"></div>
+        <h3 style="margin: 0; font-size: 18px; font-weight: 700;">Buat Chat Baru</h3>
       </div>
-      <div class="bottom-sheet-body options-list">
+      <div class="options-list" style="display: flex; flex-direction: column; gap: var(--space-2);">
         <button class="option-item" id="optionNewCompanionChat">
           <div class="option-icon companion">
             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">

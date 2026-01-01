@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Dashboard Teman Ngobrol - Ruang Dengar</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -982,6 +982,7 @@
         padding: 10px 12px;
         padding-bottom: calc(10px + env(safe-area-inset-bottom));
         flex-shrink: 0;
+        background: var(--bg-white);
       }
 
       .input-form {
@@ -1396,18 +1397,23 @@
     // ========================================
     // Mobile Viewport Height Fix
     // ========================================
+    // Store initial height to avoid keyboard-related jumps
+    let initialHeight = window.innerHeight;
+    
     function setAppHeight() {
-      const vh = window.innerHeight;
-      document.documentElement.style.setProperty('--app-height', `${vh}px`);
+      // Only use initial height to prevent layout shift when keyboard opens
+      document.documentElement.style.setProperty('--app-height', `${initialHeight}px`);
     }
 
     // Set on load
     setAppHeight();
 
-    // Update on resize (handles keyboard appearing/disappearing)
-    window.addEventListener('resize', setAppHeight);
+    // Only update on orientation change (not keyboard)
     window.addEventListener('orientationchange', () => {
-      setTimeout(setAppHeight, 100); // Delay for orientation change
+      setTimeout(() => {
+        initialHeight = window.innerHeight;
+        setAppHeight();
+      }, 100);
     });
 
     // ========================================
@@ -1449,10 +1455,15 @@
     });
 
     // Initialize view mode on load and resize
+    let lastWidth = window.innerWidth;
+    
     function initViewMode() {
       if (isMobile()) {
-        // On mobile, default to list view
-        setViewMode('list');
+        // On mobile, default to list view (only on initial load)
+        const container = document.getElementById('appContainer');
+        if (!container.classList.contains('view-list') && !container.classList.contains('view-chat')) {
+          setViewMode('list');
+        }
       } else {
         // On desktop, remove mobile view classes
         const container = document.getElementById('appContainer');
@@ -1460,7 +1471,75 @@
       }
     }
 
-    window.addEventListener('resize', initViewMode);
+    // Only handle resize when WIDTH changes (not height - keyboard)
+    window.addEventListener('resize', () => {
+      const currentWidth = window.innerWidth;
+      // Only reinitialize if width actually changed (not just keyboard appearing)
+      if (Math.abs(currentWidth - lastWidth) > 50) {
+        lastWidth = currentWidth;
+        initViewMode();
+      }
+    });
+
+    // ========================================
+    // Mobile Keyboard Handler
+    // ========================================
+    function setupKeyboardHandler() {
+      if (!window.visualViewport) return;
+      
+      const viewport = window.visualViewport;
+      
+      function handleViewportChange() {
+        // Calculate keyboard height
+        const keyboardHeight = window.innerHeight - viewport.height;
+        
+        // Get input area elements
+        const inputAreas = document.querySelectorAll('.input-area');
+        const messagesContainers = document.querySelectorAll('.messages-container');
+        
+        if (keyboardHeight > 100) {
+          // Keyboard is open
+          inputAreas.forEach(inputArea => {
+            inputArea.style.position = 'fixed';
+            inputArea.style.bottom = `${keyboardHeight}px`;
+            inputArea.style.left = '0';
+            inputArea.style.right = '0';
+            inputArea.style.zIndex = '100';
+          });
+          
+          // Adjust messages container to account for fixed input
+          messagesContainers.forEach(container => {
+            container.style.paddingBottom = '80px';
+          });
+          
+          // Scroll to bottom of messages
+          setTimeout(() => {
+            messagesContainers.forEach(container => {
+              container.scrollTop = container.scrollHeight;
+            });
+          }, 50);
+        } else {
+          // Keyboard is closed
+          inputAreas.forEach(inputArea => {
+            inputArea.style.position = '';
+            inputArea.style.bottom = '';
+            inputArea.style.left = '';
+            inputArea.style.right = '';
+            inputArea.style.zIndex = '';
+          });
+          
+          messagesContainers.forEach(container => {
+            container.style.paddingBottom = '';
+          });
+        }
+      }
+      
+      viewport.addEventListener('resize', handleViewportChange);
+      viewport.addEventListener('scroll', handleViewportChange);
+    }
+    
+    // Initialize keyboard handler
+    setupKeyboardHandler();
 
     // ========================================
     // State
@@ -1857,6 +1936,18 @@
         textarea.addEventListener('input', () => {
           textarea.style.height = 'auto';
           textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
+        });
+        
+        // Fix mobile keyboard issue - scroll to bottom when focused
+        textarea.addEventListener('focus', () => {
+          if (isMobile()) {
+            setTimeout(() => {
+              const messagesArea = document.getElementById('messagesArea');
+              if (messagesArea) {
+                messagesArea.scrollTop = messagesArea.scrollHeight;
+              }
+            }, 300);
+          }
         });
       }
 

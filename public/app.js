@@ -826,9 +826,17 @@ function renderMessages(forceScroll = false) {
   // - Smooth scroll if user was near bottom (receiving new messages)
   // - Don't scroll if user is reading older messages
   if (forceScroll) {
-    scrollToBottom(container, false);
+    // Use timeout to ensure DOM is updated before scrolling
+    setTimeout(() => {
+      container.scrollTop = container.scrollHeight;
+    }, 50);
   } else if (wasNearBottom) {
-    scrollToBottom(container, true);
+    setTimeout(() => {
+      container.scrollTo({
+        top: container.scrollHeight,
+        behavior: 'smooth'
+      });
+    }, 50);
   }
 }
 
@@ -1801,6 +1809,34 @@ function setupMobileKeyboard() {
       
       requestAnimationFrame(() => {
         setAppHeight();
+        
+        // Calculate keyboard height and adjust input area position
+        const keyboardHeight = window.innerHeight - window.visualViewport.height;
+        const inputArea = document.getElementById('chatInputArea');
+        const messagesContainer = document.getElementById('messagesContainer');
+        
+        if (keyboardHeight > 100) {
+          // Keyboard is open
+          if (inputArea) {
+            inputArea.style.bottom = `${keyboardHeight}px`;
+          }
+          if (messagesContainer) {
+            messagesContainer.style.paddingBottom = `${80 + keyboardHeight}px`;
+            // Auto scroll to bottom when keyboard opens
+            setTimeout(() => {
+              messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            }, 50);
+          }
+        } else {
+          // Keyboard is closed
+          if (inputArea) {
+            inputArea.style.bottom = '0';
+          }
+          if (messagesContainer) {
+            messagesContainer.style.paddingBottom = '80px';
+          }
+        }
+        
         pendingUpdate = false;
       });
     };
@@ -1821,13 +1857,26 @@ function setupMobileKeyboard() {
       // Small delay to let keyboard animation complete
       setTimeout(() => {
         setAppHeight();
-        scrollToBottom();
+        const messagesContainer = document.getElementById('messagesContainer');
+        if (messagesContainer) {
+          messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
       }, 300);
     });
 
     messageInput.addEventListener('blur', () => {
       // Reset height when keyboard closes
-      setTimeout(setAppHeight, 100);
+      setTimeout(() => {
+        setAppHeight();
+        const inputArea = document.getElementById('chatInputArea');
+        const messagesContainer = document.getElementById('messagesContainer');
+        if (inputArea) {
+          inputArea.style.bottom = '0';
+        }
+        if (messagesContainer) {
+          messagesContainer.style.paddingBottom = '80px';
+        }
+      }, 100);
     });
   }
 }

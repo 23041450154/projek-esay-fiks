@@ -1208,8 +1208,15 @@ body.chat-lock .tab-content.active {
 .chat-messages::after {
   content: '';
   display: block;
-  height: var(--space-2);
+  height: 20px;
   flex-shrink: 0;
+}
+
+/* Mobile: larger after spacer for fixed input */
+@media (max-width: 768px) {
+  .chat-messages::after {
+    height: 10px;
+  }
 }
 
 /* Chat Input - Fixed at bottom, above keyboard */
@@ -3643,10 +3650,12 @@ body.chat-lock .tab-content.active {
     flex: 1;
     min-height: 0;
     padding: var(--space-3);
-    padding-bottom: 80px; /* Space for fixed input */
+    padding-bottom: 100px; /* Extra space for fixed input + safe area */
     gap: var(--space-2);
     overflow-y: auto;
+    overflow-x: hidden;
     -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
   }
 
   .message {
